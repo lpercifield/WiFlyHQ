@@ -1686,6 +1686,102 @@ boolean WiFly::setopt(const prog_char *cmd, const char *buf, const __FlashString
     finishCommand();
     return res;
 }
+uint8_t WiFly:: getNumNetworks()
+{
+    const prog_char *joinResult[] = {
+        PSTR("SCAN:Found 0"),
+        PSTR("SCAN:Found 1"),
+        PSTR("SCAN:Found 2"),
+        PSTR("SCAN:Found 3"),
+        PSTR("SCAN:Found 4"),
+        PSTR("SCAN:Found 5"),
+        PSTR("SCAN:Found 6"),
+        PSTR("SCAN:Found 7"),
+        PSTR("SCAN:Found 8"),
+        PSTR("SCAN:Found 9"),
+        PSTR("SCAN:Found 10")
+    };
+    int8_t res;
+//    if(!startCommand()) {
+//        return -1;
+//    }
+    send_P(PSTR("scan 30\r"));
+    
+    res = multiMatch_P(joinResult, 8, 15000);
+    //getPrompt(); 
+    //finishCommand();
+    return res;
+}
+
+/*get scan in new format optional return as json array string... */
+char *WiFly::getScanNew(char *buf, int size, bool json){
+    /* Set New Scan Option */
+    //if (!setopt(PSTR("set sys printlvl 0x4000"), (char *)NULL)) {
+      //  debug.println(F("Failed to enable new scan format"));
+    //}
+    
+    const prog_char *joinResult[] = {
+        PSTR("SCAN:Found 0"),
+        PSTR("SCAN:Found 1"),
+        PSTR("SCAN:Found 2"),
+        PSTR("SCAN:Found 3"),
+        PSTR("SCAN:Found 4"),
+        PSTR("SCAN:Found 5"),
+        PSTR("SCAN:Found 6"),
+        PSTR("SCAN:Found 7"),
+        PSTR("SCAN:Found 8"),
+        PSTR("SCAN:Found 9"),
+        PSTR("SCAN:Found 10")
+    };
+    
+    int8_t res;
+    if(!startCommand()) {
+        return (char *)"<error>";
+    }
+    send_P(PSTR("scan 30\r"));
+    
+    //res = multiMatch_P(joinResult, 8, 15000);
+    res = getNumNetworks();
+    while(res==0){
+    	delay(1500);
+    	res = getNumNetworks();
+    }
+    debug.println(res);
+    gets(buf, size);
+    //String data; 
+    if(!json){
+        for(int i = 0; i<res; i++){
+            gets(buf, size);
+            //data += buf;
+            //data += "\n\r";
+            debug.println(buf);
+        }
+    } else{
+        /*format data as JSON Array*/
+//        data += "[";
+//        for (int i = 0; i<res; i++) {
+//            data += "\"";
+//            gets(buf,size);
+//            data += buf;
+//            if(i==res-1) data += "\"";
+//            else data += "\",";
+//            debug.println(buf);
+//        }
+//        data += "]";
+
+    }
+    //data.toCharArray(buf, size);
+    
+    finishCommand();
+    /* Reset Sys printlvl 0 */
+    //if (!setopt(PSTR("set sys printlvl 0"), (char *)NULL)) {
+    //    debug.println(F("Failed to turn off sys print"));
+    //}
+    
+    return buf;
+    
+    
+}
 
 /* Save current configuration */
 boolean WiFly::save()
@@ -1719,7 +1815,7 @@ boolean WiFly::reboot()
 	return false;
     }
 
-    delay(5000);
+    delay(2000);
     inCommandMode = false;
     exitCommand = 0;
     init();
@@ -2028,6 +2124,13 @@ boolean WiFly::setChannel(uint8_t channel)
 	channel = 13;
     }
     return setopt(PSTR("set wlan chan"), channel);
+}
+boolean WiFly::setChannel(const char *buf)
+{
+    //if (channel > 13) {
+	//channel = 13;
+    //}
+    return setopt(PSTR("set wlan chan"), buf);
 }
 
 /** Set WEP key */
@@ -2468,6 +2571,34 @@ boolean WiFly::createAdhocNetwork(const char *ssid, uint8_t channel)
 }
 
 /**
+ * Create an Adhoc WiFi network.
+ * The WiFly is assigned IP address 169.254.1.1.
+ * @param ssid the SSID to use for the network
+ * @param channel the WiFi channel to use; 1 to 13.
+ * @retval true - successfully create Ad Hoc network
+ * @retval false - failed
+ * @note the WiFly is rebooted as the final step of this command.
+ */
+boolean WiFly::createAP(const char *ssid, const char *channel)
+{
+    startCommand();
+    setChannel(channel); //10 i
+    setJoin(WIFLY_WLAN_JOIN_AP); //7
+    setIP(F("169.254.1.1"));
+	setGateway("169.254.1.1");
+	setNetmask(F("255.255.255.0"));
+    setDHCP(WIFLY_DHCP_MODE_SERVER);//4
+    setSSID(ssid);
+    //join();
+    
+    save();
+    finishCommand();
+    reboot();
+    return true;
+}
+
+
+/**
  * Open a TCP connection.
  * If there is already an open connection then that is closed first.
  * @param addr - the IP address or hostname to connect. A DNS lookup will be peformed
@@ -2504,12 +2635,15 @@ boolean WiFly::open(const char *addr, int port, boolean block)
     send(buf);
     send_P(PSTR("\r"));
 
-    if (!getPrompt()) {
-	debug.println(F("Failed to get prompt"));
-	debug.println(F("WiFly has crashed and will reboot..."));
-	while (1); /* wait for the reboot */
-	return false;
-    }
+//    if (!getPrompt()) {
+//	debug.println(F("Failed to get prompt"));
+//	debug.println(F("WiFly has crashed and will reboot..."));
+//	delay(3000);
+	//close();
+//	open(addr,port);
+//	while (1); /* wait for the reboot */
+//	return false;
+//    }
 
     if (!block) {
 	/* Non-blocking connect, user will poll for result */
