@@ -221,6 +221,8 @@ public:
     boolean enableDHCP();
     boolean disableDHCP();
     
+    boolean setSoftAP(const char *buf);
+    boolean setSoftAP();
     boolean createAdhocNetwork(const char *ssid, uint8_t channel);
     boolean createAP(const char *ssid, const char *channel);
     boolean join(const char *ssid, uint16_t timeout=20000);

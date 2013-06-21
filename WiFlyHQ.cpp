@@ -2571,7 +2571,7 @@ boolean WiFly::createAdhocNetwork(const char *ssid, uint8_t channel)
 }
 
 /**
- * Create an Adhoc WiFi network.
+ * Create an Access Point.
  * The WiFly is assigned IP address 169.254.1.1.
  * @param ssid the SSID to use for the network
  * @param channel the WiFi channel to use; 1 to 13.
@@ -2596,7 +2596,29 @@ boolean WiFly::createAP(const char *ssid, const char *channel)
     reboot();
     return true;
 }
+/**
+ * Create an Soft Access Point.
+ * @param buff the SSID to use for the network
+ * @retval true - successfully create Access Point
+ * @retval false - failed
+ */
+boolean WiFly::setSoftAP(const char *buf)
+{
+    return setopt(PSTR("apmode "), buf);
+}
 
+/**
+ * Create an Soft Access Point.
+ * The WiFly is assigned IP address 169.254.1.1.
+ * This uses the DeviceID plus the last byte of the MAC for the SSID
+ * @retval true - successfully create Ad Hoc network
+ * @retval false - failed
+ * @note the WiFly is rebooted as the final step of this command.
+ */
+boolean WiFly::setSoftAP()
+{
+    return setopt(PSTR("apmode"));
+}
 
 /**
  * Open a TCP connection.
@@ -2635,10 +2657,11 @@ boolean WiFly::open(const char *addr, int port, boolean block)
     send(buf);
     send_P(PSTR("\r"));
 
-//    if (!getPrompt()) {
-//	debug.println(F("Failed to get prompt"));
-//	debug.println(F("WiFly has crashed and will reboot..."));
-//	delay(3000);
+    if (!getPrompt()) {
+	debug.println(F("Failed to get prompt"));
+	debug.println(F("WiFly has crashed and will reboot..."));
+	delay(3000);
+	}
 	//close();
 //	open(addr,port);
 //	while (1); /* wait for the reboot */
