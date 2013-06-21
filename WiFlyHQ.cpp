@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2012 Darran Hunt (darran [at] hunt dot net dot nz)
+ * Copyright (c) 2012,2013 Darran Hunt (darran [at] hunt dot net dot nz)
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -23,7 +23,7 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/*
+/**
  * @file WiFly RN-XV Library
  */
 
@@ -1851,11 +1851,25 @@ bool WiFly::setJoin(uint8_t join)
     return setopt(PSTR("set wlan join"), join);
 }
 
+/** 
+ * Set the WiFly's IP address.
+ * @param buf IPv4 address in a null-terminated string.
+ *            e.g "192.168.1.10"
+ * @retval true address set
+ * @retval false failed to set address
+ */
 boolean WiFly::setIP(const char *buf)
 {
     return setopt(PSTR("set ip address"), buf);
 }
 
+/** 
+ * Set the WiFly's IP address.
+ * @param buf IPv4 address in a null-terminated flash string.
+ *            e.g F("192.168.1.10")
+ * @retval true address set
+ * @retval false failed to set address
+ */
 boolean WiFly::setIP(const __FlashStringHelper *buf)
 {
     return setopt(PSTR("set ip address"), NULL, buf);
@@ -1943,9 +1957,9 @@ boolean WiFly::setIpProtocol(const uint8_t protocol)
     return setProtocol(protocol);
 }
 
-boolean WiFly::setIpFlags(const uint8_t protocol)
+boolean WiFly::setIpFlags(const uint8_t flags)
 {
-    return setopt(PSTR("set ip protocol"), protocol, HEX);
+    return setopt(PSTR("set ip flags"), flags, HEX);
 }
 
 /** Set NTP server IP address */
@@ -2401,6 +2415,7 @@ boolean WiFly::leave()
 /** Check to see if the WiFly is connected to a wireless network */
 boolean WiFly::isAssociated()
 {
+    getConnection();
     return (status.assoc == 1);
 }
 
@@ -2734,13 +2749,16 @@ boolean WiFly::open(IPAddress addr, int port, boolean block)
     return open(iptoa(addr, buf, sizeof(buf)), port, block);
 }
 
-/** Check to see if there is a tcp connection. */
+/**
+ * Check to see if there is a tcp connection.
+ * @retval true connected
+ * @retval false not connected
+ */
 boolean WiFly::isConnected()
 {
-    if (!connected) {
-	/* Check for a connection */
-	available();
-    }
+    /* Check for a connect or disconnect */
+    available();
+
     return connected;
 }
 
