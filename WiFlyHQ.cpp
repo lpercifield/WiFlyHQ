@@ -2672,16 +2672,12 @@ boolean WiFly::open(const char *addr, int port, boolean block)
     send(buf);
     send_P(PSTR("\r"));
 
-    if (!getPrompt()) {
+     if (!getPrompt(10000)) {
 	debug.println(F("Failed to get prompt"));
 	debug.println(F("WiFly has crashed and will reboot..."));
-	delay(3000);
-	}
-	//close();
-//	open(addr,port);
-//	while (1); /* wait for the reboot */
-//	return false;
-//    }
+	while (1); /* wait for the reboot */
+	return false;
+    }
 
     if (!block) {
 	/* Non-blocking connect, user will poll for result */
