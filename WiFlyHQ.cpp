@@ -35,6 +35,7 @@ extern unsigned int __heap_start;
 extern void *__brkval;
 
 #undef DEBUG
+//#define DEBUG
 
 #ifdef DEBUG
 #define DPRINT(item) debug.print(item)
@@ -2634,6 +2635,22 @@ boolean WiFly::setSoftAP()
 {
     return setopt(PSTR("apmode"));
 }
+
+
+boolean WiFly::runWebConfig()
+{
+	startCommand();
+	println("run web_app");
+	boolean bwifiConfig = false;
+	while(bwifiConfig == false){
+		bwifiConfig = match("Disabling AP mode",60000);
+	}
+	//finishCommand();
+	inCommandMode = false;
+	Serial.println("DONE CONFIG");
+	//reboot();
+}
+
 
 /**
  * Open a TCP connection.
